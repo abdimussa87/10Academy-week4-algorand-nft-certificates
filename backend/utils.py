@@ -24,7 +24,7 @@ def save_image_from_url(url, output_folder_name):
 # Example usage:
 if __name__ == '__main__':        
 
-    image_url = 'https://oaidalleapiprodscus.blob.core.windows.net/private/org-57DHbubaUsKcpEwBCHTVrS6b/user-ZPTxrE5Z3of20YjzdGT5LsFj/img-2av4vCqoBQfy6qH0C4K5JcA0.png?st=2024-01-10T04%3A59%3A23Z&se=2024-01-10T06%3A59%3A23Z&sp=r&sv=2021-08-06&sr=b&rscd=inline&rsct=image/png&skoid=6aaadede-4fb3-4698-a8f6-684d7786b067&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2024-01-10T02%3A36%3A31Z&ske=2024-01-11T02%3A36%3A31Z&sks=b&skv=2021-08-06&sig=%2BQGu%2BHUQzyC74OdfHFSBTX3QBAksj7VQ5cQ9B2PpO3g%3D'
+    image_url = 'https://oaidalleapiprodscus.blob.core.windows.net/private/org-57DHbubaUsKcpEwBCHTVrS6b/user-ZPTxrE5Z3of20YjzdGT5LsFj/img-xfHHE1MFN24dOej0fMSWo9ul.png?st=2024-01-10T07%3A11%3A56Z&se=2024-01-10T09%3A11%3A56Z&sp=r&sv=2021-08-06&sr=b&rscd=inline&rsct=image/png&skoid=6aaadede-4fb3-4698-a8f6-684d7786b067&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2024-01-10T02%3A18%3A12Z&ske=2024-01-11T02%3A18%3A12Z&sks=b&skv=2021-08-06&sig=G3hYrhXaJiw2KCAV6qnWaJwYS9ySB5lTF/GzMb6uHss%3D'
     output_folder_name = 'certificate_base_image_variations'  
 
     save_image_from_url(image_url, output_folder_name)
