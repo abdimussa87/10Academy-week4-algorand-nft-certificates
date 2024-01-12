@@ -1,9 +1,9 @@
 {
-  "name": "algo",
+  "name": "frontend",
   "version": "0.1.0",
   "author": {
-    "name": "abdulhamid",
-    "email": ""
+    "name": "Abdulhamid",
+    "email": "test@domain.com"
   },
   "private": true,
   "engines": {

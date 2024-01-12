@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { DeflyWalletConnect } from '@blockshake/defly-connect'
 import { DaffiWalletConnect } from '@daffiwallet/connect'
 import { PeraWalletConnect } from '@perawallet/connect'
@@ -5,25 +6,19 @@ import { PROVIDER_ID, ProvidersArray, WalletProvider, useInitializeProviders, us
 import algosdk from 'algosdk'
 import { SnackbarProvider } from 'notistack'
 import { useState } from 'react'
+import AppCalls from './components/AppCalls'
 import ConnectWallet from './components/ConnectWallet'
-import Transact from './components/Transact'
-import { getAlgodConfigFromViteEnvironment, getKmdConfigFromViteEnvironment } from './utils/network/getAlgoClientConfigs'
+import { getAlgodConfigFromViteEnvironment } from './utils/network/getAlgoClientConfigs'
+
+export enum AuctionState {
+  Pending,
+  Started,
+  Ended,
+}
 
 let providersArray: ProvidersArray
 if (import.meta.env.VITE_ALGOD_NETWORK === '') {
-  const kmdConfig = getKmdConfigFromViteEnvironment()
-  providersArray = [
-    {
-      id: PROVIDER_ID.KMD,
-      clientOptions: {
-        wallet: kmdConfig.wallet,
-        password: kmdConfig.password,
-        host: kmdConfig.server,
-        token: String(kmdConfig.token),
-        port: String(kmdConfig.port),
-      },
-    },
-  ]
+  providersArray = [{ id: PROVIDER_ID.KMD }]
 } else {
   providersArray = [
     { id: PROVIDER_ID.DEFLY, clientStatic: DeflyWalletConnect },
@@ -37,18 +32,15 @@ if (import.meta.env.VITE_ALGOD_NETWORK === '') {
 
 export default function App() {
   const [openWalletModal, setOpenWalletModal] = useState<boolean>(false)
-  const [openDemoModal, setOpenDemoModal] = useState<boolean>(false)
   const { activeAddress } = useWallet()
+  const [auctionState, setAuctionState] = useState<AuctionState>(AuctionState.Pending)
+  const [appID, setAppID] = useState<number>(0)
+
+  const algodConfig = getAlgodConfigFromViteEnvironment()
 
   const toggleWalletModal = () => {
     setOpenWalletModal(!openWalletModal)
   }
-
-  const toggleDemoModal = () => {
-    setOpenDemoModal(!openDemoModal)
-  }
-
-  const algodConfig = getAlgodConfigFromViteEnvironment()
 
   const walletProviders = useInitializeProviders({
     providers: providersArray,
@@ -64,40 +56,41 @@ export default function App() {
   return (
     <SnackbarProvider maxSnack={3}>
       <WalletProvider value={walletProviders}>
-        <div className="hero min-h-screen bg-teal-400">
-          <div className="hero-content text-center rounded-lg p-6 max-w-md bg-white mx-auto">
-            <div className="max-w-md">
-              <h1 className="text-4xl">
-                Welcome to <div className="font-bold">AlgoKit 🙂</div>
-              </h1>
-              <p className="py-6">
-                This starter has been generated using official AlgoKit React template. Refer to the resource below for next steps.
-              </p>
+        <div className="">
+          <div className="">
+            <div className="">
+              <h1 className="w-full p-6 text-4xl"> Welcome to AlgoKit 🙂 </h1>
 
-              <div className="grid">
-                <a
-                  data-test-id="getting-started"
-                  className="btn btn-primary m-2"
-                  target="_blank"
-                  href="https://github.com/algorandfoundation/algokit-cli"
-                >
-                  Getting started
-                </a>
-
-                <div className="divider" />
-                <button data-test-id="connect-wallet" className="btn m-2" onClick={toggleWalletModal}>
-                  Wallet Connection
-                </button>
-
-                {activeAddress && (
-                  <button data-test-id="transactions-demo" className="btn m-2" onClick={toggleDemoModal}>
-                    Transactions Demo
+              <div className="">
+                <div className="py-10 bg-gray-100">
+                  <button
+                    data-test-id="connect-wallet"
+                    className="flex justify-center p-5 m-2 mx-auto bg-blue-400 rounded-full"
+                    onClick={toggleWalletModal}
+                  >
+                    Wallet Connection
                   </button>
-                )}
-              </div>
+                </div>
+                <div className="divider" />
 
-              <ConnectWallet openModal={openWalletModal} closeModal={toggleWalletModal} />
-              <Transact openModal={openDemoModal} setModalState={setOpenDemoModal} />
+                <div className="flex justify-end">
+                  <label htmlFor="app" className="m-2 label">
+                    App ID
+                  </label>
+                  <input
+                    type="number"
+                    id="app"
+                    value={appID}
+                    className="border-none"
+                    readOnly={true}
+                    onChange={(e) => (e.target.valueAsNumber ? setAppID(e.target.valueAsNumber) : setAppID(0))}
+                  />
+                </div>
+
+                <AppCalls appID={appID} setAppID={setAppID} />
+
+                <ConnectWallet openModal={openWalletModal} closeModal={toggleWalletModal} />
+              </div>
             </div>
           </div>
         </div>
