@@ -9,6 +9,7 @@ import Admin from './components/Admin'
 import Trainee from './components/Trainee'
 import IssueNft from './components/IssueNft'
 import ErrorPage from './components/Error'
+import Optin from './components/Optin'
 const router = createBrowserRouter([
   {
     path: '/',
@@ -25,7 +26,11 @@ const router = createBrowserRouter([
     element: <Trainee />,
   },
   {
-    path: 'issue-nft',
+    path: 'trainee/opt-in',
+    element: <Optin />,
+  },
+  {
+    path: 'admin/issue-nft',
     element: <IssueNft />,
   },
 ])

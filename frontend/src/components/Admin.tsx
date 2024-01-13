@@ -22,12 +22,14 @@ function Admin() {
     <div className="flex flex-col h-screen bg-gradient-to-r from-purple-400 via-pink-500 to-red-500">
       <header className="flex items-center justify-between px-6 py-4 text-white bg-gray-800">
         <h1 className="text-lg font-semibold">Admin Dashboard</h1>
-        <Button className="text-white bg-red-500 hover:bg-red-600" onClick={() => navigate('/issue-nft')}>
-          Issue An NFT
-        </Button>
-        <Button className="text-white bg-red-500 hover:bg-red-600" onClick={handleLogout}>
-          Logout
-        </Button>
+        <div>
+          <Button className="mr-6 text-white bg-green-400 hover:bg-green-700" onClick={() => navigate('/admin/issue-nft')}>
+            Issue An NFT
+          </Button>
+          <Button className="text-white bg-red-500 hover:bg-red-600" onClick={handleLogout}>
+            Logout
+          </Button>
+        </div>
       </header>
       <main className="flex-1 p-6 overflow-auto">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
