@@ -10,6 +10,7 @@ import AppCalls from './components/AppCalls'
 import ConnectWallet from './components/ConnectWallet'
 import { getAlgodConfigFromViteEnvironment } from './utils/network/getAlgoClientConfigs'
 import Login from './components/Login'
+import { Navigate } from 'react-router-dom'
 
 export enum AuctionState {
   Pending,
@@ -32,6 +33,14 @@ if (import.meta.env.VITE_ALGOD_NETWORK === '') {
 }
 
 export default function App() {
+  // check if role in local storage exists
+  const role = localStorage.getItem('role')
+  if (role === 'admin') {
+    return <Navigate to="/admin" />
+  } else if (role === 'trainee') {
+    return <Navigate to="/trainee" />
+  }
+
   const [openWalletModal, setOpenWalletModal] = useState<boolean>(false)
   const { activeAddress } = useWallet()
   const [auctionState, setAuctionState] = useState<AuctionState>(AuctionState.Pending)

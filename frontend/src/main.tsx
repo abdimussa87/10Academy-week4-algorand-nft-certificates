@@ -7,11 +7,15 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
 import Admin from './components/Admin'
 import Trainee from './components/Trainee'
+import IssueNft from './components/IssueNft'
+import ErrorPage from './components/Error'
 const router = createBrowserRouter([
   {
     path: '/',
     element: <App />,
+    errorElement: <ErrorPage />,
   },
+
   {
     path: 'admin',
     element: <Admin />,
@@ -19,6 +23,10 @@ const router = createBrowserRouter([
   {
     path: 'trainee',
     element: <Trainee />,
+  },
+  {
+    path: 'issue-nft',
+    element: <IssueNft />,
   },
 ])
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
