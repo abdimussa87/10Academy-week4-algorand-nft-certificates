@@ -1,7 +1,3 @@
-/**
- * v0 by Vercel.
- * @see https://v0.dev/t/Gq2MeIvdFgA
- */
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -27,6 +23,7 @@ export default function Component() {
       })
       if (response && response.data) {
         localStorage.setItem('access_token', response.data.access_token)
+        localStorage.setItem('role', response.data.role)
         if (response.data.role == 'admin') {
           navigate('/admin')
         } else {
