@@ -9,6 +9,7 @@ import { useState } from 'react'
 import AppCalls from './components/AppCalls'
 import ConnectWallet from './components/ConnectWallet'
 import { getAlgodConfigFromViteEnvironment } from './utils/network/getAlgoClientConfigs'
+import Login from './components/Login'
 
 export enum AuctionState {
   Pending,
@@ -55,7 +56,7 @@ export default function App() {
 
   return (
     <SnackbarProvider maxSnack={3}>
-      <WalletProvider value={walletProviders}>
+      {/* <WalletProvider value={walletProviders}>
         <div className="">
           <div className="">
             <div className="">
@@ -94,7 +95,8 @@ export default function App() {
             </div>
           </div>
         </div>
-      </WalletProvider>
+      </WalletProvider> */}
+      <Login />
     </SnackbarProvider>
   )
 }
