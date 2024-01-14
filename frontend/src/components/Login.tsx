@@ -68,7 +68,7 @@ export default function Component() {
         </Button>
       </main>
       <footer className="flex items-center justify-center py-4 bg-gray-100 dark:bg-gray-800">
-        <p className="text-sm text-gray-500 dark:text-gray-400">Powered by Web3</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">Powered by Algorand</p>
       </footer>
     </div>
   )

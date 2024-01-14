@@ -1,9 +1,13 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { AvatarImage, AvatarFallback, Avatar } from '@/components/ui/avatar'
 import { CardTitle, CardHeader, CardContent, Card } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { Button } from './ui/button'
+import { useEffect, useState } from 'react'
+import axios from 'axios'
 
 export default function Trainee() {
   // check if role in local storage exists and is admin
@@ -11,12 +15,23 @@ export default function Trainee() {
   if (role !== 'trainee') {
     return <Navigate to="/" />
   }
+  const [transferredAssets, setTransferredAssets] = useState([])
+
+  const getTransferredAssets = async () => {
+    const response = await axios.get('http://localhost:8000/transferred_assets')
+    setTransferredAssets(response.data)
+  }
+
   const navigate = useNavigate()
 
   const handleLogout = () => {
     localStorage.clear()
     window.location.reload()
   }
+
+  useEffect(() => {
+    getTransferredAssets()
+  }, [])
   return (
     <div className="w-full min-h-screen p-10 text-white bg-gradient-to-r from-green-400 to-blue-500">
       <nav className="flex items-center justify-between w-full mb-10">
@@ -36,30 +51,43 @@ export default function Trainee() {
       <main>
         <Card className="p-6 rounded-xl">
           <CardHeader>
-            <CardTitle className="text-2xl">Your Request Status</CardTitle>
+            <CardTitle className="text-2xl">Your Certificate Status</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="flex items-center space-x-4">
-              <BadgeIcon className="w-12 h-12 text-green-500" />
-              <div className="text-lg">NFT Certificate Request</div>
-            </div>
-            <div className="grid gap-2 mt-4">
-              <div className="flex items-center space-x-2">
-                <Label className="text-base">Status:</Label>
-                <Badge className="text-base" variant="default">
-                  Approved
-                </Badge>
+          {transferredAssets.length == 0 && <p className="text-lg ml-7">You have no certificate issued yet</p>}
+          {transferredAssets.map((transferredAsset: any) => (
+            <CardContent key={Object.keys(transferredAsset)[0]}>
+              <div className="flex items-center space-x-4">
+                <BadgeIcon className="w-12 h-12 text-green-500" />
+                <div className="text-lg">NFT Certificate Request</div>
               </div>
-              <div className="flex items-center space-x-2">
-                <Label className="text-base">Request ID:</Label>
-                <span className="text-base">123456789</span>
+              <div className="grid gap-2 mt-4">
+                <div className="flex items-center space-x-2">
+                  <Label className="text-base">Status:</Label>
+                  <Badge className="text-base" variant="default">
+                    Approved
+                  </Badge>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Label className="text-base">Asset ID:</Label>
+                  <span className="text-base"> {transferredAsset[Object.keys(transferredAsset)[0]]['asset_id']}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Label className="text-base">Image:</Label>
+                  <span className="text-base">{`https://ipfs.io/ipfs/${transferredAsset[Object.keys(transferredAsset)[0]]['asset_image']}`}</span>
+                  <img
+                    alt="NFT image"
+                    height={50}
+                    src={`https://ipfs.io/ipfs/${transferredAsset[Object.keys(transferredAsset)[0]]['asset_image']}`}
+                    style={{
+                      aspectRatio: '50/50',
+                      objectFit: 'cover',
+                    }}
+                    width={50}
+                  />
+                </div>
               </div>
-              <div className="flex items-center space-x-2">
-                <Label className="text-base">Date Submitted:</Label>
-                <span className="text-base">Jan 1, 2024</span>
-              </div>
-            </div>
-          </CardContent>
+            </CardContent>
+          ))}
         </Card>
       </main>
     </div>

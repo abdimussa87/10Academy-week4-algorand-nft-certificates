@@ -10,6 +10,8 @@ from algod import (
     algod_client,
     print_asset_holding,
     print_created_asset,
+    opt_in_to_asset,
+    transfer_asset_to_trainee,
 )
 from schemes import *
 
@@ -37,6 +39,8 @@ db = {
         "public_key": "KOW4VBKHQX3H254Q7BPCRIBBYBBQ3CIJFRMTKQNED6TQDYGI6EDN62S7JY",
     },
     "assets": [],
+    "opt-in-requests": [],
+    "transferred-assets": [],
 }
 
 
@@ -171,8 +175,6 @@ async def issue_nft(asset: Asset, current_user: User = Depends(get_current_admin
     )
 
     try:
-        # Pull account info for the creator
-        # account_info = algod_client.account_info(accounts[1]['pk'])
         # get asset_id from tx
         # Get the new asset's information from the creator account
         ptx = algod_client.pending_transaction_info(txid)
@@ -198,3 +200,73 @@ async def issue_nft(asset: Asset, current_user: User = Depends(get_current_admin
 @app.get("/nfts")
 async def get_nfts(current_user: User = Depends(get_current_admin)):
     return db["assets"]
+
+
+@app.post("/opt-in")
+async def opt_in(optin: OptIn, current_user: User = Depends(get_current_trainee)):
+    asset_id = 0
+    for asset in db["assets"]:
+        for key, value in asset.items():
+            if key == optin.full_name:
+                asset_id = value["asset_id"]
+
+    if not asset_id:
+        raise HTTPException(status_code=404, detail="Asset not found")
+
+    opt_in_to_asset(
+        trainee_public_key=db["trainee"]["public_key"],
+        trainee_private_key=db["trainee"]["private_key"],
+        asset_id=asset_id,
+    )
+    db["opt-in-requests"].append({optin.full_name: {"asset_id": asset_id}})
+    return {"status": "success"}
+
+
+@app.get("/opt-in-requests")
+async def opt_in_requests():
+    return db["opt-in-requests"]
+
+
+@app.post("/transfer-asset")
+async def transfer_asset(
+    transfer: AssetTransfer, current_user: User = Depends(get_current_admin)
+):
+    opt_in_request_exists = False
+    for opt_in_request in db["opt-in-requests"]:
+        for key, value in opt_in_request.items():
+            if key == transfer.full_name:
+                opt_in_request_exists = True
+
+    if not opt_in_request_exists:
+        raise HTTPException(status_code=404, detail="Asset opt-in request not found")
+
+    transfer_asset_to_trainee(
+        admin_public_key=db["admin"]["public_key"],
+        admin_private_key=db["admin"]["private_key"],
+        trainee_public_key=db["trainee"]["public_key"],
+        asset_id=transfer.asset_id,
+    )
+    asset_image = None
+    for asset in db["assets"]:
+        for key, value in asset.items():
+            if value["asset_id"] == int(transfer.asset_id):
+                asset_image = value["asset_image"]
+
+    db["transferred-assets"].append(
+        {
+            transfer.full_name: {
+                "asset_id": transfer.asset_id,
+                "asset_image": asset_image,
+            }
+        }
+    )
+    # removing from opt-in request
+    db["opt-in-requests"].remove(
+        {transfer.full_name: {"asset_id": int(transfer.asset_id)}}
+    )
+    return {"status": "success"}
+
+
+@app.get("/transferred_assets")
+async def transferred_assets():
+    return db["transferred-assets"]

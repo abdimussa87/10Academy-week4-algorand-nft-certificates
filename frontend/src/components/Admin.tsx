@@ -1,32 +1,15 @@
-import React from 'react'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import React, { FormEvent, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { CardTitle, CardDescription, CardHeader, CardContent, Card } from '@/components/ui/card'
 import { Navigate } from 'react-router-dom'
 import { AvatarImage, AvatarFallback, Avatar } from '@/components/ui/avatar'
 import { useNavigate } from 'react-router-dom'
-import ConnectWallet from './ConnectWallet'
-import { PROVIDER_ID, ProvidersArray, WalletProvider, useInitializeProviders, useWallet } from '@txnlab/use-wallet'
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { DeflyWalletConnect } from '@blockshake/defly-connect'
-import { DaffiWalletConnect } from '@daffiwallet/connect'
-import { PeraWalletConnect } from '@perawallet/connect'
 import { useState } from 'react'
-import { getAlgodConfigFromViteEnvironment } from '../utils/network/getAlgoClientConfigs'
-import algosdk from 'algosdk'
+import axios from 'axios'
 
-let providersArray: ProvidersArray
-if (import.meta.env.VITE_ALGOD_NETWORK === '') {
-  providersArray = [{ id: PROVIDER_ID.KMD }]
-} else {
-  providersArray = [
-    { id: PROVIDER_ID.DEFLY, clientStatic: DeflyWalletConnect },
-    { id: PROVIDER_ID.PERA, clientStatic: PeraWalletConnect },
-    { id: PROVIDER_ID.DAFFI, clientStatic: DaffiWalletConnect },
-    { id: PROVIDER_ID.EXODUS },
-    // If you are interested in WalletConnect v2 provider
-    // refer to https://github.com/TxnLab/use-wallet for detailed integration instructions
-  ]
-}
 function Admin() {
   // check if role in local storage exists and is admin
   const role = localStorage.getItem('role')
@@ -34,31 +17,44 @@ function Admin() {
     return <Navigate to="/" />
   }
 
+  const [isLoading, setIsLoading] = useState(false)
+  const [optinRequests, setOptinRequests] = useState([])
+  const [transferredAssets, setTransferredAssets] = useState([])
   const navigate = useNavigate()
   const handleLogout = () => {
     localStorage.clear()
     window.location.reload()
   }
-  const [openWalletModal, setOpenWalletModal] = useState<boolean>(false)
-  const { activeAddress } = useWallet()
-  const [appID, setAppID] = useState<number>(0)
-
-  const algodConfig = getAlgodConfigFromViteEnvironment()
-
-  const toggleWalletModal = () => {
-    setOpenWalletModal(!openWalletModal)
+  const getOptinRequests = async () => {
+    const response = await axios.get('http://localhost:8000/opt-in-requests')
+    setOptinRequests(response.data)
+  }
+  const getTransferredAssets = async () => {
+    const response = await axios.get('http://localhost:8000/transferred_assets')
+    setTransferredAssets(response.data)
   }
 
-  const walletProviders = useInitializeProviders({
-    providers: providersArray,
-    nodeConfig: {
-      network: algodConfig.network,
-      nodeServer: algodConfig.server,
-      nodePort: String(algodConfig.port),
-      nodeToken: String(algodConfig.token),
-    },
-    algosdkStatic: algosdk,
-  })
+  const handleOptinApproval = async (e: FormEvent<HTMLButtonElement>, fullName: string, assetId: string) => {
+    e.preventDefault()
+    setIsLoading(true)
+    const response = await axios.post(
+      'http://localhost:8000/transfer-asset',
+      { full_name: fullName, asset_id: assetId.toString() },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+        },
+      },
+    )
+    setIsLoading(false)
+    getOptinRequests()
+    getTransferredAssets()
+  }
+
+  useEffect(() => {
+    getOptinRequests()
+  }, [])
 
   return (
     <div className="flex flex-col h-screen bg-gradient-to-r from-purple-400 via-pink-500 to-red-500">
@@ -74,46 +70,6 @@ function Admin() {
         </div>
       </header>
       <main className="flex-1 p-6 overflow-auto">
-        {/* <WalletProvider value={walletProviders}>
-          <div className="">
-            <div className="">
-              <div className="">
-                {/* <h1 className="w-full p-6 text-4xl"> Welcome to AlgoKit 🙂 </h1> */}
-
-        {/* <div className="">
-                  <div className="py-10 bg-gray-100">
-                    <button
-                      data-test-id="connect-wallet"
-                      className="flex justify-center p-5 m-2 mx-auto bg-blue-400 rounded-full"
-                      onClick={toggleWalletModal}
-                    >
-                      Wallet Connection
-                    </button>
-                  </div>
-                  <div className="divider" /> */}
-
-        {/* <div className="flex justify-end">
-                      <label htmlFor="app" className="m-2 label">
-                        App ID
-                      </label>
-                      <input
-                        type="number"
-                        id="app"
-                        value={appID}
-                        className="border-none"
-                        readOnly={true}
-                        onChange={(e) => (e.target.valueAsNumber ? setAppID(e.target.valueAsNumber) : setAppID(0))}
-                      />
-                    </div> */}
-
-        {/* <AppCalls appID={appID} setAppID={setAppID} /> */}
-
-        {/* <ConnectWallet openModal={openWalletModal} closeModal={toggleWalletModal} /> */}
-        {/* </div> */}
-        {/* </div> */}
-        {/* </div> */}
-        {/* </div> */}
-        {/* </WalletProvider>  */}
         <div className="grid grid-cols-1 gap-4 mt-4 md:grid-cols-2 lg:grid-cols-3">
           <Card className="bg-white rounded-lg shadow-md dark:bg-gray-800">
             <CardHeader className="p-4">
@@ -122,76 +78,62 @@ function Admin() {
             </CardHeader>
             <CardContent className="p-4">
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Avatar className="w-8 h-8">
-                      <AvatarImage alt="@shadcn" src="/placeholder-avatar.jpg" />
-                      <AvatarFallback>JP</AvatarFallback>
-                    </Avatar>
-                    <div className="text-sm">
-                      <h4 className="font-semibold">John Doe</h4>
-                      <p className="text-gray-500 dark:text-gray-400">johndoe@example.com</p>
+                {optinRequests.map((optinRequest: any) => (
+                  <div key={Object.keys(optinRequest)[0]} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Avatar className="w-8 h-8">
+                        <AvatarImage alt="@shadcn" src="/placeholder-avatar.jpg" />
+                        <AvatarFallback>AB</AvatarFallback>
+                      </Avatar>
+                      <div className="text-sm">
+                        <h4 className="font-semibold">{Object.keys(optinRequest)[0]}</h4>
+                        <p className="text-gray-500 dark:text-gray-400">
+                          Asset-id {optinRequest[Object.keys(optinRequest)[0]]['asset_id']}
+                        </p>
+                      </div>
+                    </div>
+                    <div>
+                      <Button
+                        className="text-sm"
+                        variant="outline"
+                        onClick={(e) =>
+                          handleOptinApproval(e, Object.keys(optinRequest)[0], optinRequest[Object.keys(optinRequest)[0]]['asset_id'])
+                        }
+                      >
+                        {isLoading ? 'Loading...' : 'Approve'}
+                      </Button>
+                      <Button className="ml-4 text-sm text-white bg-red-600" variant="outline" onClick={(e) => {}}>
+                        Decline
+                      </Button>
                     </div>
                   </div>
-                  <Button className="text-sm" variant="outline">
-                    Approve
-                  </Button>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Avatar className="w-8 h-8">
-                      <AvatarImage alt="@shadcn" src="/placeholder-avatar.jpg" />
-                      <AvatarFallback>JP</AvatarFallback>
-                    </Avatar>
-                    <div className="text-sm">
-                      <h4 className="font-semibold">Jane Smith</h4>
-                      <p className="text-gray-500 dark:text-gray-400">janesmith@example.com</p>
-                    </div>
-                  </div>
-                  <Button className="text-sm" variant="outline">
-                    Approve
-                  </Button>
-                </div>
+                ))}
               </div>
             </CardContent>
           </Card>
           <Card className="bg-white rounded-lg shadow-md dark:bg-gray-800">
             <CardHeader className="p-4">
               <CardTitle className="text-lg font-semibold">NFT Certificates</CardTitle>
-              <CardDescription>A list of issued NFT certificates.</CardDescription>
+              <CardDescription>A list of transferred NFT certificates.</CardDescription>
             </CardHeader>
             <CardContent className="p-4">
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Avatar className="w-8 h-8">
-                      <AvatarImage alt="@shadcn" src="/placeholder-avatar.jpg" />
-                      <AvatarFallback>JP</AvatarFallback>
-                    </Avatar>
-                    <div className="text-sm">
-                      <h4 className="font-semibold">John Doe</h4>
-                      <p className="text-gray-500 dark:text-gray-400">johndoe@example.com</p>
+                {transferredAssets.map((transferredAsset: any) => (
+                  <div key={Object.keys(transferredAsset)[0]} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Avatar className="w-8 h-8">
+                        <AvatarImage alt="@shadcn" src="/placeholder-avatar.jpg" />
+                        <AvatarFallback>AB</AvatarFallback>
+                      </Avatar>
+                      <div className="text-sm">
+                        <h4 className="font-semibold">{Object.keys(transferredAsset)[0]}</h4>
+                        <p className="text-gray-500 dark:text-gray-400">
+                          Asset-id {transferredAsset[Object.keys(transferredAsset)[0]]['asset_id']}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                  <Button className="text-sm" variant="outline">
-                    Revoke
-                  </Button>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Avatar className="w-8 h-8">
-                      <AvatarImage alt="@shadcn" src="/placeholder-avatar.jpg" />
-                      <AvatarFallback>JP</AvatarFallback>
-                    </Avatar>
-                    <div className="text-sm">
-                      <h4 className="font-semibold">Jane Smith</h4>
-                      <p className="text-gray-500 dark:text-gray-400">janesmith@example.com</p>
-                    </div>
-                  </div>
-                  <Button className="text-sm" variant="outline">
-                    Revoke
-                  </Button>
-                </div>
+                ))}
               </div>
             </CardContent>
           </Card>

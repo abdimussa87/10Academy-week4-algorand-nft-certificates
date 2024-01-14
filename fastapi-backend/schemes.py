@@ -25,3 +25,12 @@ class UserInDB(User):
 class Asset(BaseModel):
     asset_name: str
     asset_url: str
+
+
+class OptIn(BaseModel):
+    full_name: str
+
+
+class AssetTransfer(BaseModel):
+    asset_id: str
+    full_name: str
