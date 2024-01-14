@@ -3,6 +3,8 @@ import { CardTitle, CardDescription, CardHeader, CardContent, Card } from '@/com
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Navigate } from 'react-router-dom'
+import { FormEvent, useState } from 'react'
+import axios from 'axios'
 
 export default function Optin() {
   // check if role in local storage exists and is admin
@@ -10,6 +12,26 @@ export default function Optin() {
   if (role !== 'trainee') {
     return <Navigate to="/" />
   }
+
+  const [isLoading, setIsLoading] = useState(false)
+  const [fullName, setFullName] = useState('')
+
+  const handleOptin = async (e: FormEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+    setIsLoading(true)
+    const response = await axios.post(
+      'http://localhost:8000/opt-in',
+      { full_name: fullName },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+        },
+      },
+    )
+    setIsLoading(false)
+  }
+
   const handleLogout = () => {
     localStorage.clear()
     window.location.reload()
@@ -34,18 +56,11 @@ export default function Optin() {
           <form className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Full Name</Label>
-              <Input id="name" placeholder="John Doe" required />
+              <Input id="name" placeholder="Abebe Bikila" required onChange={(e) => setFullName(e.target.value)} />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" placeholder="john@example.com" required type="email" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="wallet">Wallet Address</Label>
-              <Input id="wallet" placeholder="0x1234...5678" required />
-            </div>
-            <Button className="w-full text-white bg-green-500 hover:bg-green-600" type="submit">
-              Opt In
+
+            <Button className="w-full text-white bg-green-500 hover:bg-green-600" type="submit" onClick={handleOptin}>
+              {isLoading ? 'Loading...' : ' Opt In'}
             </Button>
           </form>
         </CardContent>
