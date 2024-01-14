@@ -9,6 +9,16 @@ This projects aims to solve the distribution of graduation certificates from 10A
 - A staff role to receive trainee’s opt-in request, and approve/decline the transfer of an NFT certificate to the trainee’s Public Key
 - A trainee to be able to check the approval or denial of their request.
 
+## Installation <a name = "installation"></a>
+
+To run the project, you need to have the following setup
+
+- Docker
+
+## Usage <a name = "usage"></a>
+
+To have the project up and running follow this steps
+
 ## References
 
 - [https://developer.algorand.org/docs/get-started/dapps/](Algorand Developer Guide)
