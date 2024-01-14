@@ -1,6 +1,6 @@
 import { Provider, useWallet } from '@txnlab/use-wallet'
 import Account from './Account'
-
+import './ConnectWallet.css'
 interface ConnectWalletInterface {
   openModal: boolean
   closeModal: () => void
@@ -10,13 +10,12 @@ const ConnectWallet = ({ openModal, closeModal }: ConnectWalletInterface) => {
   const { providers, activeAddress } = useWallet()
 
   const isKmd = (provider: Provider) => provider.metadata.name.toLowerCase() === 'kmd'
-
   return (
     <dialog id="connect_wallet_modal" className={`modal ${openModal ? 'modal-open' : ''}`}>
       <form method="dialog" className="modal-box">
-        <h3 className="font-bold text-2xl">Select wallet provider</h3>
+        <h3 className="text-2xl font-bold">Select wallet provider</h3>
 
-        <div className="grid m-2 pt-5">
+        <div className="grid pt-5 m-2">
           {activeAddress && (
             <>
               <Account />
@@ -28,7 +27,7 @@ const ConnectWallet = ({ openModal, closeModal }: ConnectWalletInterface) => {
             providers?.map((provider) => (
               <button
                 data-test-id={`${provider.metadata.id}-connect`}
-                className="btn border-teal-800 border-1  m-2"
+                className="m-2 border-teal-800 btn border-1"
                 key={`provider-${provider.metadata.id}`}
                 onClick={() => {
                   return provider.connect()

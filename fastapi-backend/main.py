@@ -1,10 +1,17 @@
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from pydantic import BaseModel
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from fastapi.middleware.cors import CORSMiddleware
+from algod import (
+    create_account,
+    create_asset,
+    algod_client,
+    print_asset_holding,
+    print_created_asset,
+)
+from schemes import *
 
 SECRET_KEY = "83daa0256a2289b0fb23693bf1f6034d44396675749244721a2b20e896e11662"
 ALGORITHM = "HS256"
@@ -17,6 +24,8 @@ db = {
         "email": "admin@gmail.com",
         "hashed_password": "$2b$12$ZkyYONTiKLgROLwDeo3EjucJeYdrFmN.Vi1XIQxicLWwMpyxccrHS",
         "role": "admin",
+        "private_key": "v6CuPLNsK9ruLILGjV0etn5o7OV9XY/3cjCr4IZFS/WbBa/LPs0psQkXIajoyTfHWXX5pVinmhXgnckMEnw3Bg==",
+        "public_key": "TMC27SZ6ZUU3CCIXEGUORSJXY5MXL6NFLCTZUFPATXEQYET4G4DJFGBSJM",
     },
     "trainee": {
         "username": "trainee",
@@ -24,29 +33,11 @@ db = {
         "email": "trainee@gmail.com",
         "hashed_password": "$2b$12$KbkT1G1UMVkMj0e1neLF2OvM17Z0hg0tz6AC5zrX4duzZ5Ly9LLcq",
         "role": "trainee",
+        "private_key": "EczZgLkdkfUBPu36s5CXkbI120VWK5299ErcZ8SCgVFTrcqFR4X2fXeQ+F4ooCHAQw2JCSxZNUGkH6cB4MjxBg==",
+        "public_key": "KOW4VBKHQX3H254Q7BPCRIBBYBBQ3CIJFRMTKQNED6TQDYGI6EDN62S7JY",
     },
+    "assets": [],
 }
-
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-    role: str
-
-
-class TokenData(BaseModel):
-    username: str or None = None
-
-
-class User(BaseModel):
-    username: str
-    email: str or None = None
-    full_name: str or None = None
-    role: str = "trainee"
-
-
-class UserInDB(User):
-    hashed_password: str
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -166,3 +157,44 @@ async def read_users_me(current_user: User = Depends(get_current_trainee)):
 @app.get("/users/me/items")
 async def read_own_items(current_user: User = Depends(get_current_admin)):
     return [{"item_id": 1, "owner": current_user}]
+
+
+@app.post("/issue-nft")
+async def issue_nft(asset: Asset, current_user: User = Depends(get_current_admin)):
+    txid = create_asset(
+        unit_name="CERT",
+        asset_name=asset.asset_name,
+        total=1,
+        sender_private_key=db["admin"]["private_key"],
+        sender_public_key=db["admin"]["public_key"],
+        asset_url=f"https://ipfs.io/ipfs/{asset.asset_url}",
+    )
+
+    try:
+        # Pull account info for the creator
+        # account_info = algod_client.account_info(accounts[1]['pk'])
+        # get asset_id from tx
+        # Get the new asset's information from the creator account
+        ptx = algod_client.pending_transaction_info(txid)
+        asset_id = ptx["asset-index"]
+        # print_created_asset(algod_client, db["admin"]["public_key"], asset_id)
+        # print_asset_holding(algod_client, db["admin"]["public_key"], asset_id)
+
+        # inserting the created asset to db with its name mapping it's id
+        db["assets"].append(
+            {
+                asset.asset_name: {
+                    "asset_id": asset_id,
+                    "asset_name": asset.asset_name,
+                    "asset_image": asset.asset_url,
+                }
+            }
+        )
+        return {asset.asset_name: asset_id}
+    except Exception as e:
+        print(e)
+
+
+@app.get("/nfts")
+async def get_nfts(current_user: User = Depends(get_current_admin)):
+    return db["assets"]
