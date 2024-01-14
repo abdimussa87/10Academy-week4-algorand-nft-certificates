@@ -45,5 +45,6 @@ To fund the generated accounts, go to the sandbox directory and first ran `./san
 
 ## References
 
-- [https://developer.algorand.org/docs/get-started/dapps/](Algorand Developer Guide)
-- [https://edgeandnode.com/blog/defining-the-web3-stack](Understanding the web3 stack)
+- [Getting Started with Algorand and Fast API](https://developer.algorand.org/solutions/python-algorand-sdk-and-fastapi/)
+- [Algorand Developer Guide](https://developer.algorand.org/docs/get-started/dapps/)
+- [Understand the web3 stack](https://edgeandnode.com/blog/defining-the-web3-stack)
