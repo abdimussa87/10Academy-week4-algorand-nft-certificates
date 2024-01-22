@@ -54,6 +54,7 @@ function Admin() {
 
   useEffect(() => {
     getOptinRequests()
+    getTransferredAssets()
   }, [])
 
   return (
